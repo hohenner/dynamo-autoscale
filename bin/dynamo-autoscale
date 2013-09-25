@@ -46,7 +46,7 @@ DynamoAutoscale.logger.info "Ensuring tables exist in DynamoDB..."
 dynamo = AWS::DynamoDB.new
 
 DynamoAutoscale.poller_opts[:tables].select! do |table_name|
-  if dynamo.tables[table_name].exists?
+  if dynamo.tables.select {|table| table.name.include? table_name}.size > 0
     true
   else
     DynamoAutoscale.logger.error "Table #{table_name} does not exist inside your DynamoDB."

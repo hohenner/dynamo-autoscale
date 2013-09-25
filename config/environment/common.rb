@@ -45,6 +45,18 @@ module DynamoAutoscale
         ":tables section."
 
       exit 1
+    else
+      db = AWS::DynamoDB.new
+      temp = []
+      config[:tables].each do |table_name|
+        if db.tables[table_name].exists?
+          temp << table_name
+        else
+          db.tables.select {|table| table.name.include? table_name}.each {|t| temp << t.name}
+        end
+
+      end
+      config[:tables] = temp
     end
 
     filters = config[:dry_run] ? DynamoAutoscale::LocalActioner.faux_provisioning_filters : []

@@ -13,6 +13,7 @@
 
 require_relative '../config/environment/common'
 require 'timecop'
+require 'optparse'
 
 OptionParser.new do |opts|
   opts.on("--graph") do
