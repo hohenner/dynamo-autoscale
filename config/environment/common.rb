@@ -51,7 +51,8 @@ module DynamoAutoscale
           db.tables.select {|table| table.name.include? table_name}.each {|t| table_names << t.name}
         end
       end
-    rescue AWS::DynamoDB::Errors::ValidationException
+    rescue
+      logger.info "[reload] AWS error: " + $!.class.to_s + " : " + $!.to_s
       table_names = config_elements[:tables]
     end
 
@@ -82,7 +83,8 @@ module DynamoAutoscale
         end
         config[:orig_tables] = config[:tables]
         config[:tables] = temp
-      rescue AWS::DynamoDB::Errors::ValidationException
+      rescue
+        logger.info "[setup] AWS error: " + $!.class.to_s + " : " + $!.to_s
         # change nothing if no dynamo connection
       end
     end
