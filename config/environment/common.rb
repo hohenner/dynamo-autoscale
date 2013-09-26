@@ -41,15 +41,18 @@ module DynamoAutoscale
     config_elements = YAML.load_file(path).merge(overrides)
 
     logger.debug "[reload] config[:tables] #{config_elements[:tables]}"
-    db = AWS::DynamoDB.new(:access_key_id => config_elements[:aws][:access_key_id], :secret_access_key => config_elements[:aws][:secret_access_key])
-    table_names = []
-    config_elements[:tables].each do |table_name|
-      if db.tables[table_name].exists?
-        table_names << table_name
-      else
-        db.tables.select {|table| table.name.include? table_name}.each {|t| table_names << t.name}
+    begin
+      db = AWS::DynamoDB.new(:access_key_id => config_elements[:aws][:access_key_id], :secret_access_key => config_elements[:aws][:secret_access_key])
+      table_names = []
+      config_elements[:tables].each do |table_name|
+        if db.tables[table_name].exists?
+          table_names << table_name
+        else
+          db.tables.select {|table| table.name.include? table_name}.each {|t| table_names << t.name}
+        end
       end
-
+    rescue AWS::DynamoDB::Errors::ValidationException
+      table_names = config_elements[:tables]
     end
 
     table_names
@@ -66,18 +69,22 @@ module DynamoAutoscale
 
       exit 1
     else
-      db = AWS::DynamoDB.new
-      temp = []
-      config[:tables].each do |table_name|
-        if db.tables[table_name].exists?
-          temp << table_name
-        else
-          db.tables.select {|table| table.name.include? table_name}.each {|t| temp << t.name}
-        end
+      begin
+        db = AWS::DynamoDB.new
+        temp = []
+        config[:tables].each do |table_name|
+          if db.tables[table_name].exists?
+            temp << table_name
+          else
+            db.tables.select {|table| table.name.include? table_name}.each {|t| temp << t.name}
+          end
 
+        end
+        config[:orig_tables] = config[:tables]
+        config[:tables] = temp
+      rescue AWS::DynamoDB::Errors::ValidationException
+        # change nothing if no dynamo connection
       end
-      config[:orig_tables] = config[:tables]
-      config[:tables] = temp
     end
 
     filters = config[:dry_run] ? DynamoAutoscale::LocalActioner.faux_provisioning_filters : []
