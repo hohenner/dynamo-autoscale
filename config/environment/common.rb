@@ -36,6 +36,26 @@ module DynamoAutoscale
     @@config = new_config
   end
 
+  def self.reload_tables  path, overrides = {}
+    logger.debug "[reload] Loading config..."
+    config_elements = YAML.load_file(path).merge(overrides)
+
+    logger.debug "[reload] config[:tables] #{config_elements[:tables]}"
+    db = AWS::DynamoDB.new(:access_key_id => config_elements[:aws][:access_key_id], :secret_access_key => config_elements[:aws][:secret_access_key])
+    table_names = []
+    config_elements[:tables].each do |table_name|
+      if db.tables[table_name].exists?
+        table_names << table_name
+      else
+        db.tables.select {|table| table.name.include? table_name}.each {|t| table_names << t.name}
+      end
+
+    end
+
+    table_names
+
+  end
+
   def self.setup_from_config path, overrides = {}
     logger.debug "[setup] Loading config..."
     self.config = YAML.load_file(path).merge(overrides)
@@ -56,6 +76,7 @@ module DynamoAutoscale
         end
 
       end
+      config[:orig_tables] = config[:tables]
       config[:tables] = temp
     end
 

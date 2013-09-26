@@ -27,6 +27,12 @@ module DynamoAutoscale
         logger.debug "[cw_poller] Sleeping for #{sleep_duration} seconds..."
         sleep(sleep_duration)
 
+        logger.debug "[cw_poller] +++ old tables: #{DynamoAutoscale.poller_opts} #{ARGV[0]}"
+
+        tables = DynamoAutoscale.reload_tables(ARGV[0])
+        DynamoAutoscale.poller_opts[:tables] = tables
+        logger.debug "[cw_poller] +++ new tables: #{DynamoAutoscale.poller_opts}"
+
         do_poll(tables, &block)
       end
     end
