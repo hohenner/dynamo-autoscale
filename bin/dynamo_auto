@@ -1,0 +1,14 @@
+echo $1 $2
+ #!/bin/bash
+
+ case $1 in
+    start)
+       echo $$ > /var/run/dynamo_$2.pid;
+       exec 2>&1 ./bin/dynamo-autoscale $2.yml
+       ;;
+     stop)
+       kill `cat /var/run/dynamo_$2.pid` ;;
+     *)
+       echo "usage: dynamo_auto {start|stop} <env>" ;;
+ esac
+ exit 0
