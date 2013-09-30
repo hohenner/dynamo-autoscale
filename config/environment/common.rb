@@ -71,6 +71,7 @@ module DynamoAutoscale
       exit 1
     else
       begin
+        AWS.config(access_key_id: config[:aws][:access_key_id], secret_access_key: config[:aws][:secret_access_key])
         db = AWS::DynamoDB.new
         temp = []
         config[:tables].each do |table_name|
