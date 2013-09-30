@@ -4,7 +4,7 @@ echo $1 $2
  case $1 in
     start)
        echo $$ > /var/run/dynamo_$2.pid;
-       exec 2>&1 ./bin/dynamo-autoscale $2.yml
+       exec 2>&1 ./bin/dynamo-autoscale config/$2.yml
        ;;
      stop)
        kill `cat /var/run/dynamo_$2.pid` ;;
