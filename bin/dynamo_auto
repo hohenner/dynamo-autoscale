@@ -1,5 +1,8 @@
 #!/bin/bash
 # wrapper script for dynamo-autoscale to generate a pid for monit to control
+HOME=/enphase/dynamo-autoscale
+PATH=/opt/ruby/bin:$PATH
+cd $HOME
 
 case $1 in
    start)
